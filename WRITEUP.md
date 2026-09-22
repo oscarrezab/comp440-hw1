@@ -12,17 +12,17 @@ here; the words are yours.
 Give these to Claude before any analysis runs. One sentence each, plus one sentence on why you
 think so.
 
-**(1) A movie you know well, and what its three most-used tags will be:** XXXX
+**(1) A movie you know well, and what its three most-used tags will be:** "Rear Window" is a movie I know well, I'd say it's most-used tags would be "classic", "engaging", and "intriguing".
 
-**(1) Why you think so:** XXXX
+**(1) Why you think so:** "classic" given that it is a very famous film, "engaging" thanks to its great soundtrack that immerses viewers into the diegesis, and "intriguing" because one rarely knows what's happening in different places at a given time.
 
-**(2) Out of every 100 people who rated movies here, how many ever added a tag?** XXXX
+**(2) Out of every 100 people who rated movies here, how many ever added a tag?** I'd say 10 out of 100
 
-**(2) Why you think so:** XXXX
+**(2) Why you think so:** It is nothing I've ever done before, so I'm basing it off of my own usage of movie platforms.
 
-**(3) Can one person's tags take over a movie's tag list? Yes or no:** XXXX
+**(3) Can one person's tags take over a movie's tag list? Yes or no:** Yes
 
-**(3) Why you think so:** XXXX
+**(3) Why you think so:** Because, if there were to be no pre-existing tags for the given movie, those added by the user would be the only ones.
 
 ## Part 1. Whose data is this?
 
