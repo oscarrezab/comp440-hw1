@@ -95,62 +95,47 @@ took and whether it matched. The `WRITEUP.md` slot names one good target.
 
 **1. Pick a movie** with at least 500 ratings and 30 tags. Before you see any counts, have Claude
 print its ten most-used tags in random order, and give Claude your order of them for the
-"My own order" slot, and say in one sentence what your order means by "best". That meaning is
-yours; nothing in this assignment defines it for you. Then have Claude list all its tags by how
-many times each was added. How do these tags fall short of "best describing the movie"? Tell
-Claude the most misleading entry and why.
+"My own order" slot. What "best" means is up to you; say it in a sentence. Then have Claude list
+all its tags by how many times each was added. How do these tags fall short of "best describing
+the movie"? Tell Claude the most misleading entry and why.
 
-Then make a MovieLens account at movielens.org, rate the movie you picked, and add one tag to it.
-Tell Claude what you noticed about how the site collects ratings and tags: what it suggested,
-what it asked you for, and what it did with your tag. You can make this visit any time before
-Part 2 is committed; if you cannot get to it tonight, keep going.
+Also make a MovieLens account at movielens.org, rate your movie, and add one tag to it. Tell
+Claude what you noticed about how the site collects ratings and tags. Any time before Part 2 is
+committed is fine.
 
 **2. Study the movie tagging.** Who added the tags, and when? Ask Claude for one figure showing
 when the tags and the ratings arrived, and give Claude a sentence before you see it and one
-after. Then ask
-for two tables: who added each tag, and how the people who added each top tag rated the movie.
+after. Then ask for two tables: who added each tag, and how the people who added each top tag rated the movie.
 Tell Claude two interesting details you learned.
 
 **3. Define your own score.** Tell Claude your `score(movie, tag)` and have it write the code and
-run it on every movie. Claude writes a score for every movie and tag the judge will see to
-`scores.csv`, which `agreement.py` and the viewer both read. Hints: a) clean up minor textual
-differences in the tags, and b) choose distinctive rather than popular tags. Give Claude your
-justification, including which tags you merged.
+run it on every movie. Hints: a) clean up minor textual differences in the tags, and b) choose
+distinctive rather than popular tags. Give Claude your justification, including which tags you
+merged.
 
 **4. Your own ranking.** For nine other movies you know well, ask Claude for the ten most-used
 tags of each, in random order. Those nine plus the movie from step 1 are your ten. Give Claude
 the ten, and your order of each tag list by how well *you* think the tags describe the movie,
 without looking at any data.
 
-**5. The tag judge.** The judge is Claude Sonnet, reading a paragraph you write and rating the
-tags on those movies against it. That paragraph is your criterion, and it is a different thing from your
-`score()`.
+**5. The tag judge.** We will use Claude Sonnet as a tag judge. You write a paragraph on what
+makes a tag one that best describes a movie, and Sonnet rates the tags against it.
 
-Tell Claude your paragraph on what makes a tag one that best describes a movie, or write it into
-`judge/criterion.md` yourself, and have Claude run `/judge`. The judge refuses to run while that
-file is still the paragraph the template shipped.
+Tell Claude your paragraph, or write it into `judge/criterion.md` yourself, and have Claude run
+`/judge`. The judge is two prompts: a system prompt that says how to answer, the same for
+everyone, and a user prompt built for each movie from your paragraph, the movie, and the tags
+people put on it. It never sees a count, so "the tag most people used" cannot be a criterion.
+And the paragraph must not be your `score()` written out in words; then the judge just agrees
+with you.
 
-The judge is two prompts. One is a **system prompt** that says how to answer; it is the same for
-everybody in the class. The other is a **user prompt** built fresh for each movie: your criterion,
-a blank line, the movie, then the tags people put on it. The script sends that pair to Claude once
-per movie, for the 100 movies it ships with plus your ten, five at a time, on Sonnet with no
-reasoning. The judge never sees a count, so a criterion about how popular a tag is cannot be
-applied.
+Claude rates each tag 1 to 5, for 100 movies plus your ten, into `judge/ratings_movies.csv`. It
+takes a couple of minutes and some of your Claude allowance. Then `agreement.py` gives one number
+for each of three rankings, your `score()`, popularity, and your own order: of its top five tags
+on a movie, how many the judge rated 4 or 5. If anything is unclear, ask Claude.
 
-One thing the paragraph must not be: your `score()` written out in words. If the judge is
-applying your own rule, it agrees with you by construction and the agreement number stops
-measuring anything.
-
-Claude rates each tag 1 to 5, in `judge/ratings_movies.csv`. It takes a couple of minutes and
-about 5% of your Claude allowance.
-
-Then `agreement.py` scores the three rankings that are not the judge's against the judge's: your
-`score()`, popularity, and your own order from step 4. The number is this: of that ranking's top
-five tags on a movie, how many the judge rated 4 or 5, counted over all the movies. If there is
-anything you do not understand, ask Claude to explain it or look it up.
-
-The skill is a page of instructions, `judge/README.md`. Read it and any important files it references, then tell Claude, for `WRITEUP.md`, how the skill is built, what it does when
-it runs, and why skills matter. 
+The skill is a page of instructions, `judge/README.md`. Read it and the files it points to, then
+tell Claude, for `WRITEUP.md`, how the skill is built, what it does when it runs, and why skills
+matter.
 
 **6. Inspecting the results.** `results_viewer.py` is a rough first draft of a viewer, on
 purpose. Have Claude run it and open the page it builds, `movie_results.html`. What does it show
@@ -171,55 +156,33 @@ describe that user?
 Most people never tag. So a person's tags have to be worked out from what they rated: for each
 tag, how they rated the movies carrying it.
 
-You should go about this similarly to how you proceeded in Part 2. The Part 3 slots in
-`WRITEUP.md` say what to record.
+Go about this the way you did in Part 2. The Part 3 slots in `WRITEUP.md` say what to record.
 
-1. List 20 movies you have seen with the rating you would give each. Give Claude that list,
-   one per line, no bullets and no numbering: the movieId, the title, and your rating. These
-   go in the writeup, not on the MovieLens site. `part3_users.py` reads them out of the
-   "My 20 ratings" slot and adds you to the ratings table as a user of your own.
+1. List 20 movies you have seen with the rating you would give each, and give Claude the list:
+   the movieId, the title, and your rating, one per line. Claude adds you to the ratings table
+   as a user.
 
 2. Next, come up with `score(user, tag)` and tell Claude what it is. Start simply. You can
-   always improve. Have Claude test it on your own data.
+   always improve. Test it on your own data.
 
 3. Ask Claude for qualitative (small data) and quantitative (big data) tools to help you
    improve the scoring function:
-    * Ask for a version of the viewer for users, as `user_results.py`, and use it to look at
-      the tags for 10 users, yourself included. Build it for *you*, the person reading it: the
-      information most valuable to you is what belongs on the page.
+    * A version of the viewer for users, `user_results.py`, and use it to look at the tags for
+      10 users, yourself included. Build it for *you*, the reviewer.
 
-    * Decide what the judge needs to see about a person, then write `judge/users.csv` in the
-      same three columns the movie file uses, `id, description, tags`, and run the same judge
-      on it: `uv run python judge/judge.py judge/users.csv`. Run it the way the movie judge
-      runs, on Sonnet with no reasoning; `judge/judge.py` shows the exact command. What goes in
-      the description column is your design and is a graded decision. The judge rates exactly
-      the tags you put in the file, so which tags they are is your call too; your
-      `score(user, tag)` is not restricted either way. **Part 3 has its own criterion**, and
-      the judge picks it by the name of the items file. A file named `judge/users.csv` is rated
-      against `judge/criterion_users.md`. A file named anything else is rated against
-      `judge/criterion.md`, the movie paragraph you wrote in Part 2. So name the file
-      `judge/users.csv`. Tell Claude your paragraph for people, or write
-      `judge/criterion_users.md` yourself. The movie paragraph is about films, and it rates
-      tags on people badly. The script says which criterion it read and how many tag ratings it
-      is about to ask for, before it asks for them. **A few hundred tag ratings is plenty.**
-      1,000 is about 5% of your Claude allowance and far more than you need. Be strategic about
-      which ones you choose: the ones your score is most confident about, the ones near your
-      cut, and your own.
+    * The same judge, run on people. Decide what the judge needs to see about a person and have
+      Claude write `judge/users.csv` (`id, description, tags`), then run
+      `uv run python judge/judge.py judge/users.csv`. Sonnet, no reasoning, like the movie judge.
+      Write a paragraph for people in `judge/criterion_users.md`; the movie paragraph rates tags
+      on people badly. A few hundred tag ratings is plenty. 1,000 is about 5% of your Claude
+      allowance. Be strategic about which pairs you judge.
 
-    * Ask for a way to put your `score(user, tag)` and your judge's rating side by side on the
-      pairs you judged. Part 2 had `agreement.py` for this; Part 3 does not, so it is a thing
-      you specify. Say how you want a disagreement measured, because your score gives ranks and
-      the judge gives 1 to 5, and whatever you choose decides which pairs you end up reading.
+    * A way to put your `score(user, tag)` and the judge's rating side by side on the pairs you
+      judged, since `agreement.py` only knows about movies. Say how a disagreement is measured.
 
-4. Use the tools above to support two improvements **to the scoring function**, and tell Claude
-   what you changed and what showed it. Both improvements change `score(user, tag)`; changing
-   the viewer or the judge is how you find one, not one of the two. The evidence for an
-   improvement is what your judge and your viewer show on the pairs you chose. The judge only
-   ever rates the tags you put in `judge/users.csv`, and every tag in `judge/vocabulary.txt`
-   was used by at least 310 different people. So a change that drops rare tags will move your
-   viewer and leave your judge's numbers exactly where they were. That is a real result and
-   worth writing up; it is just not the one that moves the number. Everyone's judge is their
-   own, so nobody's number is compared with anybody else's.
+4. Use the tools above to support two improvements to the scoring function, and tell Claude
+   what you changed and what showed it. Note that the judge only rates the tags you gave it, all
+   of them used by at least 310 people, so dropping rare tags moves your viewer, not the judge.
 
 ### Part 4 — Working with Claude
 
