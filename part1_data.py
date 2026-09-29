@@ -34,19 +34,83 @@ No figures are required in Part 1. `WRITEUP.md` takes one interesting thing from
 rule differs from yours, and your two checks.
 """
 
-from load_data import load_all
+import gzip
+
+import numpy as np
+import pandas as pd
+
+from load_data import DATA, load_all
+
+
+FULL_ML32M_RATINGS = 32_000_204
 
 
 def part1_data(ratings, tags, movies, links):
-    print("part 1 unimplemented")  # delete this line when you start
-
     print("== (a) how much ==")
+    n_users = ratings["userId"].nunique()
+    n_movies = ratings["movieId"].nunique()
+    share = len(ratings) / FULL_ML32M_RATINGS
+    print(f"ratings.csv: {len(ratings):,} rows")
+    print(f"tags.csv: {len(tags):,} rows")
+    print(f"movies.csv: {len(movies):,} rows")
+    print(f"links.csv: {len(links):,} rows")
+    print(f"distinct users: {n_users:,}")
+    print(f"distinct movies: {n_movies:,}")
+    print(f"share of all {FULL_ML32M_RATINGS:,} MovieLens ratings: {share:.4f}")
 
+    print()
     print("== (b) spread ==")
+    ratings_per_user = ratings.groupby("userId").size()
+    ratings_per_movie = ratings.groupby("movieId").size()
+    tags_per_user = tags.groupby("userId").size()
+    tags_per_movie = tags.groupby("movieId").size()
+    for label, s in (("ratings per user", ratings_per_user),
+                     ("ratings per movie", ratings_per_movie),
+                     ("tag applications per user", tags_per_user),
+                     ("tag applications per movie", tags_per_movie)):
+        print(f"{label}: median {s.median():.1f}, min {s.min()}, max {s.max()}")
+    raters = pd.Index(ratings["userId"].unique())
+    taggers = pd.Index(tags["userId"].unique())
+    raters_who_tagged = raters.isin(taggers).sum()
+    print(f"raters who ever applied a tag: {raters_who_tagged:,} "
+          f"({raters_who_tagged / len(raters):.4f} of {len(raters):,} raters)")
 
+    print()
     print("== (c) top tags, two ways ==")
+    by_count = tags.groupby("tag").size().rename("applications")
+    by_users = tags.groupby("tag")["userId"].nunique().rename("distinct_users")
+    both = pd.concat([by_count, by_users], axis=1)
+    print("-- by number of applications --")
+    top_by_count = both.sort_values("applications", ascending=False).head(20)
+    for tag, row in top_by_count.iterrows():
+        print(f"{tag!r}: {row['applications']:,} applications, "
+              f"{row['distinct_users']:,} distinct users")
+    print("-- by number of distinct users --")
+    top_by_users = both.sort_values("distinct_users", ascending=False).head(20)
+    for tag, row in top_by_users.iterrows():
+        print(f"{tag!r}: {row['applications']:,} applications, "
+              f"{row['distinct_users']:,} distinct users")
 
+    print()
     print("== (d) two checks ==")
+    with gzip.open(DATA / "ratings.csv.gz", "rt") as fh:
+        raw_rows = sum(1 for _ in fh) - 1  # minus header row
+    share_a = len(ratings) / FULL_ML32M_RATINGS
+    share_raw = raw_rows / FULL_ML32M_RATINGS
+    verdict1 = "MATCH" if raw_rows == len(ratings) else "DIFFER"
+    print(f"check 1, share of {FULL_ML32M_RATINGS:,} ratings: "
+          f"(a) {share_a:.4f} from {len(ratings):,} pandas rows vs. "
+          f"{share_raw:.4f} from {raw_rows:,} rows counted directly in the gzip file "
+          f"-> {verdict1}")
+
+    movie_ids = ratings["movieId"].to_numpy()
+    bincounts = np.bincount(movie_ids)
+    floor_bincount = int(bincounts[bincounts > 0].min())
+    floor_b = int(ratings_per_movie.min())
+    verdict2 = "MATCH" if floor_b == floor_bincount else "DIFFER"
+    print(f"check 2, least-rated kept movie's rating count: "
+          f"(b) groupby gives {floor_b} vs. np.bincount gives {floor_bincount} "
+          f"-> {verdict2}")
 
 
 if __name__ == "__main__":

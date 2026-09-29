@@ -28,17 +28,17 @@ think so.
 
 Code: `part1_data.py`.
 
-**My rule for cutting 32 million ratings to 5 million** (written before reading `data/make_compact.py`)**:** XXXX
+**My rule for cutting 32 million ratings to 5 million** (written before reading `data/make_compact.py`)**:** Start by removing those ratings that have no tags associated. If there are still more than 5 million, remove the movies with the least amount of ratings. This is so that we can map a rating to the tags given and so we discard movies that might skew our understanding of ratings-tags relationships.
 
-**One rule I considered and rejected, and why:** XXXX
+**One rule I considered and rejected, and why:** I considered removing them at random, but then this would still retain rows or data points that are not of much useful information for analysis.
 
-**One interesting thing from `data/README.md`:** XXXX
+**One interesting thing from `data/README.md`:** Keeping only "eligible" users is a very interesting part of the rule which I agree with, it removes users with too few ratings that would make the final table rather sparse.
 
-**How the script's rule differs from mine, and what each keeps that the other drops:** XXXX
+**How the script's rule differs from mine, and what each keeps that the other drops:** My rule does not consider user-to-rating-count relationships, so there is no guarantee that the users kept have a decent amount ratings made. The script's rule is also more explicit on how related movies, tags, and users are linked. Another big difference is how we chose to reach the 5M ratings count, while I opted to continuously check if we had reduced the dataset size to 5M, whereas the script's rule first reduces the set to less than 5M and then adds back with the random sample as needed.
 
-**First check. Which of Claude's numbers, the different route you took, and whether it matched** (one good target: 6 tags are the literal text `NA`, which pandas drops unless told not to)**:** XXXX
+**First check. Which of Claude's numbers, the different route you took, and whether it matched** (one good target: 6 tags are the literal text `NA`, which pandas drops unless told not to)**:** (a)'s share of all 32,000,204 MovieLens ratings: 0.1562, from 5,000,030 pandas rows. The different route: counting rows directly in the raw `ratings.csv.gz` file (not through pandas), which gave 5,000,030 rows and the same 0.1562 share. MATCH.
 
-**Second check. Which of Claude's numbers, the different route you took, and whether it matched:** XXXX
+**Second check. Which of Claude's numbers, the different route you took, and whether it matched:** (b)'s rating count of the least-rated kept movie, from `ratings.groupby("movieId").size().min()`: 83. The different route: `np.bincount` over the movieId values, which also gave 83. MATCH.
 
 ## Part 2. What tags best describe a movie?
 
