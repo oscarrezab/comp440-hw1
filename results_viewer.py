@@ -135,9 +135,10 @@ def build(scores_path, judge_path, data_dir, writeup_path):
         applied = tags[tags["movieId"] == movie_id]
         counts = applied["tag"].value_counts()
         people = applied["userId"].nunique()
-        gaps = [(tag, score_rank[tag], judge_rank[tag]) for tag in judge_rank
+        gaps = [(tag, score_rank[tag], judge_rank[tag], score_rank[tag] - judge_rank[tag])
+                for tag in judge_rank
                 if abs(score_rank[tag] - judge_rank[tag]) >= GAP]
-        gaps.sort(key=lambda g: (-abs(g[1] - g[2]), g[0]))
+        gaps.sort(key=lambda g: (-abs(g[3]), g[0]))
         out.append({
             "title": "%s — %s ratings" % (titles.get(movie_id, "movie %d" % movie_id),
                                           "{:,}".format(int(rated.get(movie_id, 0)))),
@@ -161,10 +162,49 @@ def table_html(headers, rows):
     return "<table><tr>%s</tr>%s</table>" % (head, body)
 
 
-def list_html(tags):
-    if not tags:
-        return "<p>not written yet</p>"
-    return "<ol>%s</ol>" % "".join("<li>%s</li>" % html.escape(t) for t in tags)
+def diff_color(diff, max_abs):
+    """Background color for a signed rank difference: green for positive, red for
+    negative, intensity scaled by how large the difference is relative to the biggest
+    one shown for this movie."""
+    if max_abs == 0:
+        return "transparent"
+    intensity = abs(diff) / max_abs
+    alpha = 0.15 + 0.65 * intensity
+    rgb = "46, 160, 67" if diff > 0 else "217, 48, 37"
+    return "rgba(%s, %.2f)" % (rgb, alpha)
+
+
+def disagreements_table_html(gaps):
+    """The biggest disagreements, score() against the judge: tag, each rank, and a
+    signed Difference column (score() rank minus judge rank) whose cell is shaded
+    green when positive and red when negative, darker the further from zero."""
+    headers = ["Tag", "score() rank", "Judge rank", "Difference"]
+    head = "".join("<th>%s</th>" % html.escape(h) for h in headers)
+    max_abs = max((abs(g[3]) for g in gaps), default=0)
+    rows = []
+    for tag, score_rank, judge_rank, diff in gaps:
+        cells = ["<td>%s</td>" % html.escape(tag),
+                 "<td>%d</td>" % score_rank,
+                 "<td>%d</td>" % judge_rank,
+                 '<td style="background-color: %s">%+d</td>' % (diff_color(diff, max_abs), diff)]
+        rows.append("<tr>%s</tr>" % "".join(cells))
+    return "<table><tr>%s</tr>%s</table>" % (head, "".join(rows))
+
+
+def rankings_table(movie):
+    """The four rankings (by count, your order, the judge's order, your score()) side by
+    side, one row per rank, so the same rank across methods reads as one row."""
+    columns = [movie["counts"], movie["mine"], movie["judge"], movie["score"]]
+    rows = []
+    for rank in range(TOP):
+        row = [str(rank + 1)]
+        for col in columns:
+            if rank < len(col):
+                row.append(col[rank])
+            else:
+                row.append("not written yet" if rank == 0 and not col else "")
+        rows.append(row)
+    return rows
 
 
 def render(movies):
@@ -174,15 +214,11 @@ def render(movies):
     for movie in movies:
         body += [
             "<h2>%s</h2>" % html.escape(movie["title"]),
-            "<h3>By count</h3>", list_html(movie["counts"]),
-            "<h3>Your order</h3>", list_html(movie["mine"]),
-            "<h3>The judge's order</h3>", list_html(movie["judge"]),
-            "<h3>Your score()</h3>", list_html(movie["score"]),
-            "<h3>Tags on this movie</h3>",
-            table_html(["Tag", "User", "Date"], movie["apps"]),
+            table_html(["Rank", "By count", "Your order", "The judge's order", "Your score()"],
+                       rankings_table(movie)),
             "<p>%d applications by %d people.</p>" % (len(movie["apps"]), movie["people"]),
             "<h3>Biggest disagreements, score() against the judge</h3>",
-            table_html(["Tag", "score() rank", "Judge rank"], movie["gaps"]),
+            disagreements_table_html(movie["gaps"]),
         ]
     body = "\n".join(body)
     return ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
@@ -203,25 +239,17 @@ def table_text(headers, rows):
     return "\n".join(lines)
 
 
-def numbered(tags):
-    if not tags:
-        return "    (not written yet)"
-    return "\n".join("    %2d. %s" % (i, tag) for i, tag in enumerate(tags, 1))
-
-
 def render_text(movies):
     out = ["Results Viewer", DEFINITION, ""]
     for movie in movies:
         out += [movie["title"],
-                "  By count", numbered(movie["counts"]),
-                "  Your order", numbered(movie["mine"]),
-                "  The judge's order", numbered(movie["judge"]),
-                "  Your score()", numbered(movie["score"]),
-                "  Tags on this movie",
-                table_text(["Tag", "User", "Date"], movie["apps"]),
+                table_text(["Rank", "By count", "Your order", "The judge's order",
+                            "Your score()"], rankings_table(movie)),
                 "  %d applications by %d people." % (len(movie["apps"]), movie["people"]),
                 "  Biggest disagreements, score() against the judge",
-                table_text(["Tag", "score() rank", "Judge rank"], movie["gaps"]), ""]
+                table_text(["Tag", "score() rank", "Judge rank", "Difference"],
+                           [(tag, sr, jr, "%+d" % diff)
+                            for tag, sr, jr, diff in movie["gaps"]]), ""]
     return "\n".join(out)
 
 
