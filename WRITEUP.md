@@ -219,17 +219,17 @@ Give these to Claude the way you gave it the rest. Graded on the catch and the c
 making Claude look good or bad.
 
 **A moment where Claude was wrong or overconfident, how you caught it, and where it
-happened. Name the part and the step, so the moment can be found:** XXXX
+happened. Name the part and the step, so the moment can be found:** When generating the viewer for user results, Claude was confident that the html was generated. This was not the case, since it had ran the script in the text-only mode, without creating an output file. This brings up a common thought that it's always important to triple-check important output, this is an easy case when one can just continue to sak about the file, but what if I'm about to present something and the file is not there? Just making sure at the end can be helpful.
 
-**One call where you overrode Claude, and why:** XXXX
+**One call where you overrode Claude, and why:** I don't think I ever found the need to override Claude, since any changes I needed to make could have been done through the CLI.
 
-**What you would hand to Claude sooner next time:** XXXX
+**What you would hand to Claude sooner next time:** Throughout working on this homework I found myself going through different markdown files in various directories. This might be intuitive for Claude to look for instructions, but not that useful for a human reader, especially when I did not write those files. I'd like to give him context on this issues I'm finding earlier on so we can work on better understanding the structures of different projects or even restructuring some areas. A concern that I continue to have is the idea of giving an agent access to entire projects, perhaps we can talk more about this in class.
 
-**Did Claude name the misleading tag in Part 2 step 1 before you did? What happened:** XXXX
+**Did Claude name the misleading tag in Part 2 step 1 before you did? What happened:** Claude did not mention the misleading tag before I did.
 
 **The figure. Would asking Claude "what does this show?" have produced your sentence, and what
-would have been missing from it:** XXXX
+would have been missing from it:** No, because the instructions mark this as my call to make. The only information given is about the axes but nothing about the trends one can see or any patterns that suggest changes in usage or relationships between tags and ratings, or their interactions over time.
 
-**Hours spent:** XXXX
+**Hours spent:** About 6 hours.
 
-**Anyone who helped you, or "no one":** XXXX
+**Anyone who helped you, or "no one":** No one helped me.
