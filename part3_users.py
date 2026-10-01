@@ -89,18 +89,76 @@ def add_me(ratings: pd.DataFrame, mine: pd.DataFrame) -> pd.DataFrame:
 
 # ------------------------------------------------------------------- yours to write ---
 
+TOP_N_TAGS_PER_GENRE = 10
+
+
+def _genre_top_tags(tags: pd.DataFrame, movies: pd.DataFrame) -> pd.DataFrame:
+    """The TOP_N_TAGS_PER_GENRE most-applied tags for each genre, across every movie that
+    carries it. Returns columns genre, tag, genre_tag_count."""
+    exploded = movies.assign(genre=movies["genres"].str.split("|")).explode("genre")
+    exploded = exploded[exploded["genre"] != "(no genres listed)"]
+    joined = tags.merge(exploded[["movieId", "genre"]], on="movieId")
+    counts = joined.groupby(["genre", "tag"]).size().rename("genre_tag_count").reset_index()
+    return (counts.sort_values("genre_tag_count", ascending=False)
+                  .groupby("genre").head(TOP_N_TAGS_PER_GENRE))
+
+
 def score(ratings: pd.DataFrame, tags: pd.DataFrame, movies: pd.DataFrame):
     """What tags best describe a user. This one is yours; the handout's Part 3, step 2.
 
-    Return one row per user-tag pair: userId, tag, score, higher meaning the tag describes
-    the user better. Start simply, test it on your own ratings, and improve it twice with
-    what your viewer and your judge show you."""
-    print("score(user, tag) is yours to write")
+    Per the student's definition: a user's high movies are the top quartile of their own
+    ratings, their low movies the bottom quartile (each user's own distribution, via
+    pandas `.quantile`; a rating exactly on the boundary counts as qualifying). For every
+    genre among a user's high/low movies, the genre's TOP_N_TAGS_PER_GENRE most-applied
+    tags (by overall application count, across every movie with that genre) become
+    candidates. A candidate tag's raw score is the number of the user's high/low movies
+    whose genre contributed it, summed over every qualifying genre it came from. That raw
+    score is then min/max-scaled, per user, onto 1-5 and rounded to the nearest integer, so
+    it sits on the judge's own 1-5 scale (a user whose raw scores are all equal, including
+    one with only one candidate tag, has no basis to rank within itself and gets 3, the
+    middle, across the board). Ties are broken by how many times anyone, anywhere, has
+    applied that tag (global tag popularity)."""
+    exploded = movies.assign(genre=movies["genres"].str.split("|")).explode("genre")
+    exploded = exploded[exploded["genre"] != "(no genres listed)"][["movieId", "genre"]]
+
+    q = ratings.groupby("userId")["rating"].quantile([0.25, 0.75]).unstack()
+    q.columns = ["low_cut", "high_cut"]
+    r = ratings.merge(q, on="userId")
+    extreme = r[(r["rating"] >= r["high_cut"]) | (r["rating"] <= r["low_cut"])]
+    extreme = extreme.merge(exploded, on="movieId")
+
+    user_genre_counts = (extreme.groupby(["userId", "genre"])["movieId"]
+                                 .nunique().rename("n_movies").reset_index())
+
+    genre_tags = _genre_top_tags(tags, movies)
+    pairs = user_genre_counts.merge(genre_tags, on="genre")
+
+    tag_popularity = tags.groupby("tag").size().rename("tag_popularity")
+    pairs = pairs.merge(tag_popularity, on="tag")
+
+    result = (pairs.groupby(["userId", "tag"])
+                    .agg(raw_score=("n_movies", "sum"), tag_popularity=("tag_popularity", "max"))
+                    .reset_index())
+
+    group_min = result.groupby("userId")["raw_score"].transform("min")
+    group_max = result.groupby("userId")["raw_score"].transform("max")
+    span = group_max - group_min
+    scaled = (1 + 4 * (result["raw_score"] - group_min) / span).where(span != 0, 3.0)
+    result["score"] = scaled.round().astype(int)
+    result = result.sort_values(["userId", "score", "tag_popularity"], ascending=[True, False, False])
+
+    me = result[result["userId"] == ME].sort_values(
+        ["score", "tag_popularity"], ascending=[False, False])
+    print(f"{len(result):,} user-tag row(s), {result['userId'].nunique():,} distinct user(s).")
+    print("My top ten tags:")
+    for _, row in me.head(10).iterrows():
+        print(f"  {row.tag} (score {row.score}, raw {row.raw_score}, "
+              f"tag popularity {row.tag_popularity})")
+
+    return result[["userId", "tag", "score"]]
 
 
 def part3_users(ratings, tags, movies, links):
-    print("part 3 unimplemented")  # delete this line when you start
-
     print("== (1) my ratings ==")
     mine, skipped = read_my_ratings()
     print(f'{len(mine)} rating(s) read from the "{SLOT}" slot in WRITEUP.md.')

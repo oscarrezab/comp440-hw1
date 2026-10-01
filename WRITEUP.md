@@ -160,39 +160,58 @@ and no numbering, the movieId first and the rating last, as in `296, Pulp Fictio
 
 **My 20 ratings:**
 
-XXXX
+78105, Prince of Persia: The Sands of Time (2010), 3.5
+110102, Captain America: The Winter Soldier (2014), 4
+122892, Avengers: Age of Ultron (2015), 4.5
+102125, Iron Man 3 (2013), 2.5
+95167, Brave (2012), 3
+593, Silence of the Lambs, The (1991), 5
+91529, Dark Knight Rises, The (2012), 4.5
+84152, Limitless (2011), 5
+2953, Home Alone 2: Lost in New York (1992), 3.5
+1721, Titanic (1997), 4
+2571, Matrix, The (1999), 4.5
+7254, Butterfly Effect, The (2004), 5
+4262, Scarface (1983), 4.5
+103042, Man of Steel (2013), 3
+6539, Pirates of the Caribbean: The Curse of the Black Pearl (2003), 2.5
+89745, Avengers, The (2012), 3.5
+53464, Fantastic Four: Rise of the Silver Surfer (2007), 4
+8950, Machinist, The (2004), 5
+109487, Interstellar (2014), 3.5
+68954, Up (2009), 3
 
 **My `score(user, tag)`, in a sentence, and why I started there (about 100 words):**
 
-XXXX
+The best tags for a user include those that are relevant to the genres of the films they have rated either very high or very low (within the top/bottom quartiles). There's no need for a user to have used that tagged for a movie they rated, it is sufficient for them to have rated a movie very positively or very negative. For example, had I ranked a "sci-fi" movie very highly, the most used tags for overall sci-fi films (let's say the top 10) should be considered for the ranking even if I never gave that tag myself. From those considered tags, the ranking will occur depending on a how many movies of that given genre I have rated high/low; the more I have rated of that genre, the highest it should rank. If there are ties, they're then sorted by how many times other users have given that tag to the movie. I thought about using that because that's how I thought about my usage of rating platforms; if I give a very high or very low rating while including a tag, I'd think that tag would have to do a lot with the rating, and the genre of the film would be important too.
 
 **What my score says about me: my top ten tags, and whether they describe my taste (about 100 words):**
 
-XXXX
+They generally describe my taste because it's mostly science fiction and dystopian films that I enjoy watching and thinking about rating, regardless of whether I liked them or not. The fact that my guess and the computation are very similar confirms this to me.
 
 **What my user viewer shows and why I chose that (about 100 words):**
 
-XXXX
+My user viewer shows two tables: one that displays, for each genre, the top 10 tags, my average rating, and my ratings count and another one that maps tags with the genres they're each shared across. I wanted this because it sumarizes my ratings and some relevant information about the movie genres and their tags. I think seing shared tags across genres is also helpful to give an idea of why I might like a specific combination of genres.
 
 **What I put in the description column for a person, and why (about 150 words):**
 
-XXXX
+I chose to describe a person based on their most highly-rated genres because, as one watches more and more movies, one tends to watch more of the same genres and that is descriptive of our viewing habits.
 
 **My criterion for people: what it asks the judge to do that the movie criterion did not (about 60 words):**
 
-XXXX
+It asks the judge to weigh favorite genres instead of rating extremes. I also put a big emphasis on the most reviewed genres because I believe someone's thought on a movie are based on what genre of movies they watch the most.
 
 **The user-tag pairs I chose to judge, how many, and why those (about 100 words):**
 
-XXXX
+Other users were included if they had given a tag that is within the top 10 most used for one of their own genres at least 300 times, which left 125 users plus myself, for 126 people total. For each person, the tags judged are every vocabulary tag that appears in the top 10 most used tags for each of their top 3 highest-rated genres. I chose 300 because that felt like it included a manageable amount of users that also had a great variety of tags given.
 
 **Improvement 1: what I changed in the scoring function, what the judge and the viewer showed before and after (about 150 words):**
 
-XXXX
+My `score()` ratings used to be on an arbitrary scale given that they were based on counts, making them hard to compare against the judge ratings. I had Claude normalize these values and now these appear on the visualizer for a side-by-side comparison.
 
 **Improvement 2: the same (about 150 words):**
 
-XXXX
+The previous version didn't explicitly show the difference in rating. Just as with the movies part, I had Claude add a difference column that is color-coded to better visualize differences in judge and `score()` ratings. Adding this allows for quicker and straightforward analysis.
 
 ## Part 4. Working with Claude
 
